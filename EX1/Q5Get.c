@@ -23,7 +23,7 @@ int main()
     printf("Create msg queue success,id:%d\n", msgid);
     while (1)
     {
-        int status = msgrcv(msgid, &message, 100, 0, 0); // arg[4]=0:若队列为空则阻塞等待
+        int status = msgrcv(msgid, &message, 1000, 0, 0); // arg[4]=0:若队列为空则阻塞等待
         if (status == -1)
         {
             printf("Recive msg error\n");

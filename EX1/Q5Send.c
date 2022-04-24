@@ -27,7 +27,7 @@ int main()
         printf("Please enter message,enter \"stop\" to stop:");
         fgets(buffer, BUFSIZ, stdin);
         strcpy(message.msgtxt, buffer);
-        int status = msgsnd(msgid, &message, 100, IPC_NOWAIT);
+        int status = msgsnd(msgid, &message, 1000, IPC_NOWAIT);
         if (status == -1)
         {
             printf("Send msg error\n");
