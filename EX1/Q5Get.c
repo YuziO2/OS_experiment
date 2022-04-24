@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/types.h>
+#include <sys/types.h> //msgget(),msgrcv()
 #include <sys/ipc.h>
-#include <sys/msg.h>
+#include <sys/msg.h> //msgget(),msgrcv()
 #include <string.h>
 
 struct msg_struct
