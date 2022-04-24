@@ -34,7 +34,7 @@ int main()
             exit(1);
         }
         printf("Sent succeed!The message is:%s\n", message.msgtxt);
-        if (strncmp(message.msgtxt, "stop", 3) == 0)
+        if (strncmp(message.msgtxt, "stop", 4) == 0)
         {
             break;
         }
