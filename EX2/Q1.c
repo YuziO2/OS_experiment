@@ -7,53 +7,56 @@
 #define ProcessNum 5
 #define SourceNum 4
 
+typedef struct Example
+{
+    int source[ProcessNum][SourceNum];
+    int max[ProcessNum][SourceNum];
+    int need[ProcessNum][SourceNum];
+    int sys_available[SourceNum];
+} Example;
+
 bool IsProcessMatchSource(int *need, int *work);
-bool IsSafe(int **source, int **max, int **need, int *sys_available);
+bool IsSafe(Example example);
+bool CanApplySource(Example example, int Process, int *apply);
 
 int main()
 {
     while (true)
     {
         srand((unsigned)time(NULL));
-        int source[ProcessNum][SourceNum];
-        int max[ProcessNum][SourceNum];
-        int need[ProcessNum][SourceNum];
-        int sys_available[SourceNum];
+        Example example;
         for (size_t i = 0; i < ProcessNum; i++)
         {
             for (size_t j = 0; j < SourceNum; j++)
             {
-                max[i][j] = rand() % 10;                                         // max为0-9的随机数
-                source[i][j] = max[i][j] ? max[i][j] - rand() % (max[i][j]) : 0; // source为0-max的随机数,max为0source必为0
-                // need[i][j] = max[i][j] - source[i][j];                           // need为max-source
+                example.max[i][j] = rand() % 10;                                                                 // max为0-9的随机数
+                example.source[i][j] = example.max[i][j] ? example.max[i][j] - rand() % (example.max[i][j]) : 0; // source为0-max的随机数,max为0source必为0
+                example.need[i][j] = example.max[i][j] - example.source[i][j];                                   // need为max-source
             }
-            sys_available[i] = rand() % 10;
+            example.sys_available[i] = rand() % 10;
         }
-        for (size_t i = 0; i < ProcessNum; i++)
-            for (size_t j = 0; j < SourceNum; j++)
-                need[i][j] = max[i][j] - source[i][j]; //不知为何，若本行写在上面的for循环里时，则need[0][0]在离开循环时必会被改成一个错误的值
         printf("本次运行的已分配向量，最大需求向量，需求向量如下：\n");
         printf("进程        已分配              最大需求            需要\n");
         for (size_t i = 0; i < ProcessNum; i++)
         {
-            printf("P%d         (%d", i, source[i][0]);
+            printf("P%d         (%d", i, example.source[i][0]);
             for (size_t j = 1; j < SourceNum; j++)
-                printf(",%d", source[i][j]);
-            printf(")           (%d", max[i][0]);
+                printf(",%d", example.source[i][j]);
+            printf(")           (%d", example.max[i][0]);
             for (size_t j = 1; j < SourceNum; j++)
-                printf(",%d", max[i][j]);
-            printf(")           (%d", need[i][0]);
+                printf(",%d", example.max[i][j]);
+            printf(")           (%d", example.need[i][0]);
             for (size_t j = 1; j < SourceNum; j++)
-                printf(",%d", need[i][j]);
+                printf(",%d", example.need[i][j]);
             printf(")\n");
         }
-        printf("系统当前可用资源向量为：(%d", sys_available[0]);
+        printf("系统当前可用资源向量为：(%d", example.sys_available[0]);
         for (size_t i = 1; i < SourceNum; i++)
         {
-            printf(",%d", sys_available[i]);
+            printf(",%d", example.sys_available[i]);
         }
         printf(")\n");
-        if (!IsSafe(source, max, need, sys_available))
+        if (!IsSafe(example))
         {
             printf("本系统不安全！\n");
             printf("要再次运行程序吗？输入stop结束，其他内容继续：");
@@ -69,22 +72,14 @@ int main()
     }
 }
 
-bool IsSafe(int **source, int **max, int **need, int *sys_available)
+bool IsSafe(Example example)
 {
     int finish[ProcessNum];
     for (size_t i = 0; i < ProcessNum; i++)
         finish[i] = false;
     int work[SourceNum]; //当前实时空闲资源
     for (size_t i = 0; i < SourceNum; i++)
-        work[i] = sys_available[i];
-    int needArr[ProcessNum][SourceNum]; //因为下面函数要用，为了避免矮化的影响，故拷贝一遍
-    int sourceArr[ProcessNum][SourceNum];
-    for (size_t i = 0; i < ProcessNum; i++)
-        for (size_t j = 0; j < SourceNum; j++)
-        {
-            needArr[i][j] = *((int *)need + SourceNum * i + j);
-            sourceArr[i][j] = *((int *)source + SourceNum * i + j);
-        }
+        work[i] = example.sys_available[i];
     printf("分配序列：\n");
     printf("进程        已分配              需要   --完成后-->   可用\n");
     for (size_t i = 0; i < ProcessNum; i++)
@@ -95,23 +90,23 @@ bool IsSafe(int **source, int **max, int **need, int *sys_available)
             {
                 continue;
             }
-            if (IsProcessMatchSource(needArr[j], work)) //如果某项的需求满足资源，则运行它
+            if (IsProcessMatchSource(example.need[j], work)) //如果某项的需求满足资源，则运行它
             {
                 for (size_t k = 0; k < SourceNum; k++)
                 {
-                    work[k] += sourceArr[j][k];
+                    work[k] += example.source[j][k];
                 }
-                printf("P%d         (%d", j, sourceArr[j][0]);
+                printf("P%d         (%d", j, example.source[j][0]);
                 for (size_t k = 1; k < SourceNum; k++)
-                    printf(",%d", sourceArr[j][k]);
-                printf(")           (%d", needArr[j][0]);
+                    printf(",%d", example.source[j][k]);
+                printf(")           (%d", example.need[j][0]);
                 for (size_t k = 1; k < SourceNum; k++)
-                    printf(",%d", needArr[j][k]);
+                    printf(",%d", example.need[j][k]);
                 printf(")           (%d", work[0]);
                 for (size_t k = 1; k < SourceNum; k++)
                     printf(",%d", work[k]);
                 printf(")\n");
-                finish[j] = true; //完成后置”已完成“
+                finish[j] = true; //完成后,置”已完成“
                 break;
             }
         }
@@ -128,4 +123,8 @@ bool IsProcessMatchSource(int *need, int *work)
         if (work[i] < need[i])
             return false;
     return true;
+}
+
+bool CanApplySource(Example example, int Process, int *apply)
+{
 }
