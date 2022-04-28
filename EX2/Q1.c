@@ -88,7 +88,7 @@ int main()
         char enter[10];
         scanf("%s", enter);
         if (strncmp(enter, "stop\0", 5) == 0)
-            return;
+            return 0;
     }
 }
 
