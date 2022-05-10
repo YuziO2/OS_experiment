@@ -4,14 +4,15 @@
 #include <stdbool.h>
 #include <string.h>
 
-#define ProcessNum 5
+// #define ProcessNum 5
+int ProcessNum;
 #define ResourceNum 4
 
 typedef struct Example
 {
-    int resource[ProcessNum][ResourceNum];
-    int max[ProcessNum][ResourceNum];
-    int need[ProcessNum][ResourceNum];
+    int **resource;
+    int **max;
+    int **need;
     int sys_available[ResourceNum];
 } Example;
 
@@ -25,6 +26,27 @@ int main()
     {
         srand((unsigned)time(NULL));
         Example example;
+        while (true)
+        {
+            printf("请输入进程数量，大于等于5：");
+
+            scanf("%d", &ProcessNum);
+            if (ProcessNum < 5)
+            {
+                printf("输入非法！请重新输入！\n");
+                continue;
+            }
+            break;
+        }
+        example.max = (int **)malloc(sizeof(int *) * ProcessNum);
+        example.resource = (int **)malloc(sizeof(int *) * ProcessNum);
+        example.need = (int **)malloc(sizeof(int *) * ProcessNum); //开辟行
+        for (size_t i = 0; i < ProcessNum; i++)                    //开辟列
+        {
+            *(example.max + i) = (int *)malloc(sizeof(int) * ResourceNum);
+            *(example.resource + i) = (int *)malloc(sizeof(int) * ResourceNum);
+            *(example.need + i) = (int *)malloc(sizeof(int) * ResourceNum);
+        }
         for (size_t i = 0; i < ProcessNum; i++)
         {
             for (size_t j = 0; j < ResourceNum; j++)
