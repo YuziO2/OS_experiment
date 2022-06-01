@@ -9,7 +9,7 @@ int list[list_size];
 typedef struct
 {
     int size;
-    bool used;
+    int used;
     int *content;
 } Memory;
 
@@ -42,7 +42,7 @@ void init()
 void initMemory(Memory *memory, int size)
 {
     memory->size = size;
-    memory->used = false;
+    memory->used = 0;
     memory->content = malloc(sizeof(int) * size);
 }
 
@@ -86,16 +86,16 @@ int main()
                 {
                     OPT(&memory, pages, list, i);
                 }
-            }
-            else // 储存页面
-            {
-                memory.content[memory.used] = list[i];
-                pages[list[i]].saveTime = i;
-                pages[list[i]].usedTime = i;
-                memory.used++;
+                else // 储存页面
+                {
+                    memory.content[memory.used] = list[i];
+                    pages[list[i]].saveTime = i;
+                    pages[list[i]].usedTime = i;
+                    memory.used++;
+                }
             }
         }
-        printf("用户内存页面大小: %d\t该算法命中率: %d\n", size, 1 - systemInterrupt / 320.0);
+        printf("用户内存页面大小: %d\t该算法命中率: %.2f\n", size, 1 - systemInterrupt / 320.0);
     }
 }
 
