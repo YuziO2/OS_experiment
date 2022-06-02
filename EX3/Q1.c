@@ -86,6 +86,7 @@ int main()
                 if (memory.content[j] == list[i]) // 命中
                 {
                     flag = true;
+                    pages[list[i]].usedTime = i; //置使用值
                     break;
                 }
             if (!flag) //没有命中
@@ -114,7 +115,7 @@ int main()
                 }
             }
         }
-        printf("用户内存页面大小: %d\t该算法命中率: %.2f\n", size, 1 - systemInterrupt / 320.0);
+        printf("用户内存页面大小: %d\t该算法命中率: %.2f\n", size, 1 - (double)systemInterrupt / list_size);
     }
 }
 
@@ -127,7 +128,7 @@ void OPT(Memory *memory, Page *pages, int *list, int current)
     for (int i = 0; i < memory->size; i++)
     {
         // 找到该页下次使用的序列号
-        for (j = current + 1; j < 320; j++)
+        for (j = current + 1; j < list_size; j++)
         {
             if (list[j] == memory->content[i])
                 break;
@@ -166,4 +167,19 @@ void FIFO(Memory *memory, Page *pages, int *list, int current)
 
 void LRU(Memory *memory, Page *pages, int *list, int current)
 {
+    int pageNum = list[current];
+    int earliest = 114;
+    int earliestPageNum;
+    for (int i = 0; i < memory->size; i++) //寻找最早的页
+    {
+        if (pages[i].saveTime < earliest)
+        {
+            earliest = pages[i].usedTime;
+            earliestPageNum = i;
+        }
+    }
+    // 替换页
+    memory->content[earliestPageNum] = pageNum;
+    pages[pageNum].saveTime = current;
+    pages[pageNum].usedTime = current;
 }
