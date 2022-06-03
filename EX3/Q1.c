@@ -149,7 +149,7 @@ void OPT(Memory *memory, Page *pages, int *list, int current)
 void FIFO(Memory *memory, Page *pages, int *list, int current)
 {
     int pageNum = list[current];
-    int earliest = 114;
+    int earliest = 114514;
     int earliestPageNum;
     for (int i = 0; i < memory->size; i++) //寻找最早的页
     {
@@ -168,7 +168,7 @@ void FIFO(Memory *memory, Page *pages, int *list, int current)
 void LRU(Memory *memory, Page *pages, int *list, int current)
 {
     int pageNum = list[current];
-    int earliest = 114;
+    int earliest = 114514;
     int earliestPageNum;
     for (int i = 0; i < memory->size; i++) //寻找最早的页
     {
