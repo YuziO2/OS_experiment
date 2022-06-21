@@ -7,19 +7,31 @@ struct Process
 {
     int name;
     struct Process *next;
+    struct Process *prev;
     int arrival;
     int runTime;
     int status;
 };
 
-bool IsArrived(int currentTime, struct Process *currentProcess)
+void CheckArrival(int currentTime, struct Process **willArrivalProcess, struct Process *queueRoot)
 {
-    return currentTime < currentProcess->arrival ? false : true;
-}
-
-bool IsFinished(struct Process *root)
-{
-    return !root->next; // root->next若为0，说明队列已空
+    if ((*willArrivalProcess)->next == NULL) //如果已经全部到达，则直接返回，不做其他操作
+        return;
+    while ((*willArrivalProcess)->next->arrival == currentTime) //若到达，插入队列尾部
+    {
+        *willArrivalProcess = (*willArrivalProcess)->next; //因为这里要修改指针的值，所以需要传入指针的指针/引用
+        struct Process *p = (struct Process *)malloc(sizeof(struct Process));
+        p->arrival = (*willArrivalProcess)->arrival;
+        p->name = (*willArrivalProcess)->name;
+        p->status = (*willArrivalProcess)->status;
+        p->next = (*willArrivalProcess)->next;
+        p->runTime = (*willArrivalProcess)->runTime; //将进程链表中的进程拷贝出来，然后插入队列尾
+        queueRoot->prev->next = p;                   //原队尾的next改为此进程
+        p->next = queueRoot->next;                   //此进程的next改为队列首进程
+        queueRoot->prev = p;                         //队尾指针指向此进程
+        if ((*willArrivalProcess)->next == NULL)     //如果已经全部到达，则直接返回，不做其他操作
+            return;
+    }
 }
 
 int main()
@@ -29,7 +41,7 @@ int main()
     scanf("%d", &n);
     srand((unsigned)time(NULL));
     struct Process *pre = NULL;
-    struct Process *root = (struct Process *)malloc(sizeof(struct Process));
+    struct Process *root = (struct Process *)malloc(sizeof(struct Process)); //存进程的链表
     root->next = NULL;
     int arrivalTime = 0;
     for (size_t i = 0; i < n; i++)
@@ -53,41 +65,40 @@ int main()
         printf("%s%d          %d           %d\n", "P", currentProcess->name, currentProcess->arrival, currentProcess->runTime);
     }
     int currentTime = 0;
-    currentProcess = root;
-    pre = root;
-    while (!IsFinished(root))
-    {                                              //开始调度程序
-        if (currentProcess = currentProcess->next) //还没到队尾
+    struct Process *willArrivalProcess = root;                                    //用于指向未到达进程的前一个进程
+    struct Process *queueRoot = (struct Process *)malloc(sizeof(struct Process)); //调度队列
+    queueRoot->next = queueRoot;
+    queueRoot->prev = queueRoot;
+
+    // pre = root;
+    while (!(queueRoot->next == queueRoot && willArrivalProcess->next == NULL)) //直到调度队列完且所有程序都已到达时才结束
+    {                                                                           //开始调度程序
+        CheckArrival(currentTime, &willArrivalProcess, queueRoot);              //监听是否到达，若有程序到达则加入队列
+        if (queueRoot->next == queueRoot)                                       //如果队列为空，说明还没有程序到来，等待1时刻再来
+            currentTime++;
+        else //队列不为空，开始调度
         {
-            if (IsArrived(currentTime, currentProcess))
+            if (!queueRoot->next->runTime) //若该进程已经运行完了，则将其从队列摘出
             {
-                if (!currentProcess->runTime) //如果已经运行完，退出队列
-                {
-                    currentProcess->status = 1;
-                    pre->next = currentProcess->next;
+                if (queueRoot->next == queueRoot->prev)
+                { //如果该进程也是队尾（队列中只有这一个进程，而且它还运行完了）
+                    queueRoot->next = queueRoot;
+                    queueRoot->prev = queueRoot;
                 }
                 else
-                {
-                    currentProcess->runTime--;
-                    currentTime++;
-                    printf("执行了P%d，P%d还剩%d个运行时\n", currentProcess->name, currentProcess->name, currentProcess->runTime);
-                    pre = currentProcess;
+                { //其余情况，直接摘出队列
+                    queueRoot->next = queueRoot->next->next;
                 }
             }
             else
-            { //这个程序还没到，本轮调度结束
-                printf("本轮调度结束\n");
+            { //进程还没运行完，运行1时刻
+                printf("当前时间片%d-%d，执行了P%d，P%d还剩%d个运行时\n", currentTime, currentTime + 1, queueRoot->next->name, queueRoot->next->name, queueRoot->next->runTime);
                 currentTime++;
-                pre = root;
-                currentProcess = root;
+                queueRoot->next->runTime--;
+                CheckArrival(currentTime, &willArrivalProcess, queueRoot); //同时检查(并调入)此时是否有程序到达
+                queueRoot->prev = queueRoot->next;                         //队尾指针指向此进程
+                queueRoot->next = queueRoot->next->next;                   //队首指针的next指向下一进程
             }
-        }
-        else //到队尾了
-        {
-            printf("本轮调度结束\n");
-            currentTime++;
-            pre = root;
-            currentProcess = root;
         }
     }
 }
