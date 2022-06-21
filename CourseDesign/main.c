@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <stdbool.h>
+#include "Process.h"
 #include "colors.c"
 
 void CheckArrival(int currentTime, struct Process **willArrivalProcess, struct Process *queueRoot)
