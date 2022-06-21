@@ -34,10 +34,67 @@ void CheckArrival(int currentTime, struct Process **willArrivalProcess, struct P
     }
 }
 
+void ColorListProcess(struct Process *p)
+{
+    switch (p->name % 7 + 1)
+    {
+    case 1:
+        printf("\033[31m%s%d\033[36m          %d\033[33m           %d\n", "P", p->name, p->arrival, p->runTime);
+        break;
+    case 2:
+        printf("\033[32m%s%d\033[36m          %d\033[33m           %d\n", "P", p->name, p->arrival, p->runTime);
+        break;
+    case 3:
+        printf("\033[33m%s%d\033[36m          %d\033[33m           %d\n", "P", p->name, p->arrival, p->runTime);
+        break;
+    case 4:
+        printf("\033[34m%s%d\033[36m          %d\033[33m           %d\n", "P", p->name, p->arrival, p->runTime);
+        break;
+    case 5:
+        printf("\033[35m%s%d\033[36m          %d\033[33m           %d\n", "P", p->name, p->arrival, p->runTime);
+        break;
+    case 6:
+        printf("\033[36m%s%d\033[36m          %d\033[33m           %d\n", "P", p->name, p->arrival, p->runTime);
+        break;
+    case 7:
+        printf("\033[37m%s%d\033[36m          %d\033[33m           %d\n", "P", p->name, p->arrival, p->runTime);
+        break;
+    }
+}
+
+void ColorExeProcess(int currentTime, struct Process *p)
+{
+    switch (p->name % 7 + 1)
+    {
+    case 1:
+        printf("\033[0m当前时间片\033[36m%d-%d\033[0m，执行了\033[31mP%d\033[0m，\033[31mP%d\033[0m还剩\033[33m%d\033[0m个运行时\n", currentTime, currentTime + 1, p->name, p->name, p->runTime);
+        break;
+    case 2:
+        printf("\033[0m当前时间片\033[36m%d-%d\033[0m，执行了\033[32mP%d\033[0m，\033[32mP%d\033[0m还剩\033[33m%d\033[0m个运行时\n", currentTime, currentTime + 1, p->name, p->name, p->runTime);
+        break;
+    case 3:
+        printf("\033[0m当前时间片\033[36m%d-%d\033[0m，执行了\033[33mP%d\033[0m，\033[33mP%d\033[0m还剩\033[33m%d\033[0m个运行时\n", currentTime, currentTime + 1, p->name, p->name, p->runTime);
+        break;
+    case 4:
+        printf("\033[0m当前时间片\033[36m%d-%d\033[0m，执行了\033[34mP%d\033[0m，\033[34mP%d\033[0m还剩\033[33m%d\033[0m个运行时\n", currentTime, currentTime + 1, p->name, p->name, p->runTime);
+        break;
+    case 5:
+        printf("\033[0m当前时间片\033[36m%d-%d\033[0m，执行了\033[35mP%d\033[0m，\033[35mP%d\033[0m还剩\033[33m%d\033[0m个运行时\n", currentTime, currentTime + 1, p->name, p->name, p->runTime);
+        break;
+    case 6:
+        printf("\033[0m当前时间片\033[36m%d-%d\033[0m，执行了\033[36mP%d\033[0m，\033[36mP%d\033[0m还剩\033[33m%d\033[0m个运行时\n", currentTime, currentTime + 1, p->name, p->name, p->runTime);
+        break;
+    case 7:
+        printf("\033[0m当前时间片\033[36m%d-%d\033[0m，执行了\033[37mP%d\033[0m，\033[37mP%d\033[0m还剩\033[33m%d\033[0m个运行时\n", currentTime, currentTime + 1, p->name, p->name, p->runTime);
+        break;
+    }
+}
+
 int main()
 {
     int n;
-    printf("请输入进程数：");
+    printf("\033[35m请输入进程数：\033[37m");
+    // printf("请输入进程数：");
     scanf("%d", &n);
     srand((unsigned)time(NULL));
     struct Process *pre = NULL;
@@ -59,10 +116,12 @@ int main()
         pre = p;
     }
     struct Process *currentProcess = root;
-    printf("进程     到达时间     运行时间\n");
+    printf("\033[31m进程     到达时间     运行时间\n");
+    // printf("进程     到达时间     运行时间\n");
     while (currentProcess = currentProcess->next)
     {
-        printf("%s%d          %d           %d\n", "P", currentProcess->name, currentProcess->arrival, currentProcess->runTime);
+        ColorListProcess(currentProcess);
+        // printf("%s%d          %d           %d\n", "P", currentProcess->name, currentProcess->arrival, currentProcess->runTime);
     }
     int currentTime = 0;
     struct Process *willArrivalProcess = root;                                    //用于指向未到达进程的前一个进程
@@ -92,9 +151,10 @@ int main()
             }
             else
             { //进程还没运行完，运行1时刻
-                printf("当前时间片%d-%d，执行了P%d，P%d还剩%d个运行时\n", currentTime, currentTime + 1, queueRoot->next->name, queueRoot->next->name, queueRoot->next->runTime);
-                currentTime++;
                 queueRoot->next->runTime--;
+                ColorExeProcess(currentTime, queueRoot->next);
+                // printf("当前时间片%d-%d，执行了P%d，P%d还剩%d个运行时\n", currentTime, currentTime + 1, queueRoot->next->name, queueRoot->next->name, queueRoot->next->runTime);
+                currentTime++;
                 CheckArrival(currentTime, &willArrivalProcess, queueRoot); //同时检查(并调入)此时是否有程序到达
                 queueRoot->prev = queueRoot->next;                         //队尾指针指向此进程
                 queueRoot->next = queueRoot->next->next;                   //队首指针的next指向下一进程
