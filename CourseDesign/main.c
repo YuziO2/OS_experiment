@@ -5,7 +5,7 @@
 #include "Process.h"
 #include "colors.c"
 
-void CheckArrival(int currentTime, struct Process **willArrivalProcess, struct Process *queueRoot)
+void CheckArrival(int currentTime, struct Process **willArrivalProcess, struct Process *queueRoot, struct Process **queueTail)
 {
     if ((*willArrivalProcess)->next == NULL) //如果已经全部到达，则直接返回，不做其他操作
         return;
@@ -16,11 +16,10 @@ void CheckArrival(int currentTime, struct Process **willArrivalProcess, struct P
         p->arrival = (*willArrivalProcess)->arrival;
         p->name = (*willArrivalProcess)->name;
         p->status = (*willArrivalProcess)->status;
-        p->next = (*willArrivalProcess)->next;
+        p->next = NULL;
         p->runTime = (*willArrivalProcess)->runTime; //将进程链表中的进程拷贝出来，然后插入队列尾
-        queueRoot->prev->next = p;                   //原队尾的next改为此进程
-        p->next = queueRoot->next;                   //此进程的next改为队列首进程
-        queueRoot->prev = p;                         //队尾指针指向此进程
+        (*queueTail)->next = p;                      //原队尾的next改为此进程
+        (*queueTail) = p;                            //队尾指针指向此进程
         if ((*willArrivalProcess)->next == NULL)     //如果已经全部到达，则直接返回，不做其他操作
             return;
     }
@@ -42,8 +41,8 @@ int main()
         struct Process *p = (struct Process *)malloc(sizeof(struct Process));
         p->name = i;
         p->next = NULL;
-        p->arrival = arrivalTime += rand() % 10;
-        p->runTime = rand() % 100 + 1;
+        p->arrival = arrivalTime += rand() % 5;
+        p->runTime = rand() % 15 + 1;
         p->status = 0;
         if (pre) //如果非第一个，把前一项的next置为本Process
             pre->next = p;
@@ -61,29 +60,27 @@ int main()
     }
     int currentTime = 0;
     struct Process *willArrivalProcess = root;                                    //用于指向未到达进程的前一个进程
-    struct Process *queueRoot = (struct Process *)malloc(sizeof(struct Process)); //调度队列
-    queueRoot->next = queueRoot;
-    queueRoot->prev = queueRoot;
+    struct Process *queueRoot = (struct Process *)malloc(sizeof(struct Process)); //调度队列头
+    struct Process *queueTail = queueRoot;                                        //调度队列尾
+    queueRoot->next = NULL;
 
     // pre = root;
-    while (!(queueRoot->next == queueRoot && willArrivalProcess->next == NULL)) //直到调度队列完且所有程序都已到达时才结束
-    {                                                                           //开始调度程序
-        CheckArrival(currentTime, &willArrivalProcess, queueRoot);              //监听是否到达，若有程序到达则加入队列
-        if (queueRoot->next == queueRoot)                                       //如果队列为空，说明还没有程序到来，等待1时刻再来
+    while (!(queueRoot->next == NULL && willArrivalProcess->next == NULL))     //直到调度队列完且所有程序都已到达时才结束
+    {                                                                          //开始调度程序
+        CheckArrival(currentTime, &willArrivalProcess, queueRoot, &queueTail); //监听是否到达，若有程序到达则加入队列
+        if (queueRoot->next == NULL)                                           //如果队列为空，说明还没有程序到来，等待1时刻再来
             currentTime++;
         else //队列不为空，开始调度
         {
             if (!queueRoot->next->runTime) //若该进程已经运行完了，则将其从队列摘出
             {
-                if (queueRoot->next == queueRoot->prev)
-                { //如果该进程也是队尾（队列中只有这一个进程，而且它还运行完了）
-                    queueRoot->next = queueRoot;
-                    queueRoot->prev = queueRoot;
+                if (queueRoot->next->next == NULL) //如果只剩最后一个进程
+                {
+                    queueRoot->next = NULL;
+                    queueTail = queueRoot; //将尾置为头
                 }
                 else
-                { //其余情况，直接摘出队列
-                    queueRoot->next = queueRoot->next->next;
-                }
+                    queueRoot->next = queueRoot->next->next; //将该进程摘出队列
             }
             else
             { //进程还没运行完，运行1时刻
@@ -91,9 +88,12 @@ int main()
                 ColorExeProcess(currentTime, queueRoot->next);
                 // printf("当前时间片%d-%d，执行了P%d，P%d还剩%d个运行时\n", currentTime, currentTime + 1, queueRoot->next->name, queueRoot->next->name, queueRoot->next->runTime);
                 currentTime++;
-                CheckArrival(currentTime, &willArrivalProcess, queueRoot); //同时检查(并调入)此时是否有程序到达
-                queueRoot->prev = queueRoot->next;                         //队尾指针指向此进程
-                queueRoot->next = queueRoot->next->next;                   //队首指针的next指向下一进程
+                CheckArrival(currentTime, &willArrivalProcess, queueRoot, &queueTail); //同时检查(并调入)此时是否有程序到达
+                /*    将该进程从队头移出，置入队尾    */
+                queueTail->next = queueRoot->next;       //队尾指针的下一个指向此进程
+                queueTail = queueRoot->next;             //队尾指针改为此进程
+                queueRoot->next = queueRoot->next->next; //队首指针的next指向下一进程
+                queueTail->next = NULL;                  //队尾指针的next置空
             }
         }
     }
